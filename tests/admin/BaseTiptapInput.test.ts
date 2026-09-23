@@ -1,4 +1,6 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+let capturedEffect: (() => void | (() => void)) | null = null;
 
 // ─── Mock React ───────────────────────────────────────────────────────────────
 vi.mock('react', async () => {
@@ -6,6 +8,9 @@ vi.mock('react', async () => {
   return {
     ...actual,
     forwardRef: (fn: any) => fn,
+    useEffect: (effect: () => void | (() => void)) => {
+      capturedEffect = effect;
+    },
     createElement: (type: any, props: any, ...children: any[]) => ({
       type,
       props: {
@@ -95,6 +100,10 @@ describe('BaseTiptapInput', () => {
     field: mockField,
   };
 
+  beforeEach(() => {
+    capturedEffect = null;
+  });
+
   it('is exported as a function/component', () => {
     expect(typeof BaseTiptapInput).toBe('function');
   });
@@ -173,5 +182,53 @@ describe('BaseTiptapInput', () => {
     const props = { ...defaultProps, noPresetConfigured: true };
     const result = BaseTiptapInput(props as any, null) as any;
     expect(findTextContent(result, 'No editor preset configured — showing minimal editor')).toBe(true);
+  });
+
+  it('applies browser spellcheck and article language to the editable element', () => {
+    const editableElement = {
+      spellcheck: false,
+    };
+    const setOptions = vi.fn();
+    const props = {
+      ...defaultProps,
+      editor: { view: { dom: editableElement }, options: { editorProps: {} }, setOptions },
+      spellcheck: true,
+      articleLocale: 'de-DE',
+    };
+
+    BaseTiptapInput(props as any, null);
+    capturedEffect?.();
+
+    expect(setOptions).toHaveBeenCalledWith({
+      editorProps: {
+        attributes: { spellcheck: 'true', lang: 'de-DE' },
+      },
+    });
+  });
+
+  it('updates runtime language without changing the editor content', () => {
+    const editableElement = {
+      spellcheck: false,
+    };
+    const setOptions = vi.fn();
+    const editor = { view: { dom: editableElement }, options: { editorProps: {} }, setOptions };
+
+    BaseTiptapInput(
+      { ...defaultProps, editor, spellcheck: true, articleLocale: 'de-DE' } as any,
+      null
+    );
+    capturedEffect?.();
+    BaseTiptapInput(
+      { ...defaultProps, editor, spellcheck: true, articleLocale: 'en-GB' } as any,
+      null
+    );
+    capturedEffect?.();
+
+    expect(setOptions).toHaveBeenLastCalledWith({
+      editorProps: {
+        attributes: { spellcheck: 'true', lang: 'en-GB' },
+      },
+    });
+    expect((defaultProps.field as any).onChange).not.toHaveBeenCalled();
   });
 });

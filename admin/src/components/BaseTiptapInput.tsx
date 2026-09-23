@@ -4,8 +4,9 @@ import { EditorContent } from '@tiptap/react';
 import { Editor } from '@tiptap/core';
 import { TiptapInputStyles } from './TiptapInputStyles';
 import { FieldValue } from '../utils/tiptapUtils';
-import { forwardRef } from 'react';
+import { forwardRef, useEffect } from 'react';
 import { useIntl } from 'react-intl';
+import { getSpellcheckAttributes } from '../utils/spellcheck';
 
 type TiptapInputProps = InputProps & {
   labelAction?: React.ReactNode;
@@ -13,16 +14,43 @@ type TiptapInputProps = InputProps & {
   field: FieldValue;
   children?: React.ReactNode;
   noPresetConfigured?: boolean;
+  spellcheck?: unknown;
+  articleLocale?: string;
 };
 
 const BaseTiptapInput = forwardRef<HTMLDivElement, TiptapInputProps>(
   (
-    { hint, disabled = false, labelAction, label, name, required = false, editor, field, children, noPresetConfigured },
+    {
+      hint,
+      disabled = false,
+      labelAction,
+      label,
+      name,
+      required = false,
+      editor,
+      field,
+      children,
+      noPresetConfigured,
+      spellcheck,
+      articleLocale,
+    },
     forwardedRef
   ) => {
     const { formatMessage } = useIntl();
     const borderColor = field.error ? 'danger600' : 'neutral200';
     const background = disabled ? 'neutral200' : 'neutral100';
+
+    useEffect(() => {
+      const editableElement = editor?.view?.dom;
+      if (!editableElement) return;
+
+      editor.setOptions({
+        editorProps: {
+          ...editor.options.editorProps,
+          attributes: getSpellcheckAttributes(spellcheck, articleLocale),
+        },
+      });
+    }, [articleLocale, editor, spellcheck]);
 
     return (
       <Field.Root name={name} id={name} hint={hint} error={field.error} required={required}>

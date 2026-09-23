@@ -247,6 +247,24 @@ describe('RichTextInput', () => {
     expect(baseTiptapInputs[0].props.noPresetConfigured).toBe(false);
   });
 
+  it('passes spellcheck configuration and article locale to BaseTiptapInput', () => {
+    const config = { ...MINIMAL_PRESET_CONFIG, spellcheck: true };
+    mockUsePresetConfig.mockReturnValue({ config, isLoading: false });
+    const props = {
+      name: 'content',
+      locale: 'de-DE',
+      attribute: { options: { preset: 'article' } },
+    };
+    const result = RichTextInput(props as any, null) as any;
+    const baseTiptapInputs = findElements(result, 'BaseTiptapInput');
+
+    expect(baseTiptapInputs[0].props.spellcheck).toBe(true);
+    expect(baseTiptapInputs[0].props.articleLocale).toBe('de-DE');
+    expect(mockUseTiptapEditor.mock.calls.at(-1)?.[3]).toEqual({
+      attributes: { spellcheck: 'true', lang: 'de-DE' },
+    });
+  });
+
   it('memoizes extensions on presetName string (not config object)', () => {
     const props = { name: 'content', attribute: { options: { preset: 'blog' } } };
     // Render through InnerEditor so useMemo runs

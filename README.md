@@ -588,6 +588,29 @@ export default () => ({
 });
 ```
 
+## Spellcheck
+
+Browser spellchecking is disabled by default. Enable it per editor preset with `spellcheck: true`:
+
+```ts
+export default () => ({
+  'tiptap-editor': {
+    config: {
+      presets: {
+        article: {
+          bold: true,
+          spellcheck: true,
+        },
+      },
+    },
+  },
+});
+```
+
+When enabled, the editor requests the browser's native spellchecking behavior. For localized Strapi content, the active article locale is used as the editor language (for example `de-DE` or `en-GB`). If no valid article locale is available, the browser uses its normal language fallback. Browser support and browser-level spellchecking settings remain authoritative.
+
+Set `spellcheck: false`, omit the option, or use a preset without it to keep spellchecking disabled. The setting only affects the editor at runtime and does not add metadata to the stored TipTap JSON.
+
 ## Configuration Reference
 
 ### Feature Values
@@ -649,6 +672,9 @@ export default () => ({
           // Text and highlight colors (requires theme.colors)
           textColor: true,
           highlightColor: true,
+
+          // Browser-native spellchecking using the active article locale
+          spellcheck: true,
 
           // Images from Strapi Media Library with resize enabled
           mediaLibrary: {

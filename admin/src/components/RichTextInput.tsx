@@ -17,25 +17,45 @@ import { useTextColor } from '../extensions/TextColor';
 import { useHighlightColor } from '../extensions/HighlightColor';
 import { usePresetConfig } from '../hooks/usePresetConfig';
 import { buildExtensions } from '../utils/buildExtensions';
+import { getSpellcheckAttributes } from '../utils/spellcheck';
 import { TiptapPresetConfig, MINIMAL_PRESET_CONFIG, getFeatureOptions } from '../../../shared/types';
+
+type LocaleAwareInputProps = TiptapInputProps & {
+  locale?: string;
+  document?: { locale?: string };
+};
+
+const getActiveArticleLocale = (props: LocaleAwareInputProps): string | undefined => {
+  const directLocale = props.locale ?? props.document?.locale;
+  if (directLocale) return directLocale;
+
+  if (typeof window === 'undefined') return undefined;
+
+  const query = new URLSearchParams(window.location.search);
+  return query.get('plugins[i18n][locale]') ?? query.get('locale') ?? undefined;
+};
 
 // ─── Inner editor ────────────────────────────────────────────────────────────
 // Mounted only AFTER preset config is resolved, so useEditor receives the
 // correct extensions on first render and never needs to swap them.
 
-type InnerEditorProps = TiptapInputProps & {
+type InnerEditorProps = LocaleAwareInputProps & {
   config: TiptapPresetConfig;
   presetName: string | undefined;
+  articleLocale?: string;
 };
 
 const InnerEditor = forwardRef<HTMLDivElement, InnerEditorProps>(
-  ({ config, presetName, ...props }, forwardedRef) => {
+  ({ config, presetName, articleLocale, ...props }, forwardedRef) => {
     // Memoize on presetName string — stable across parent re-renders
     const extensions = useMemo(() => {
       return buildExtensions(config);
     }, [presetName]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const { editor, field } = useTiptapEditor(props.name, '', extensions);
+    const spellcheckAttributes = getSpellcheckAttributes(config.spellcheck, articleLocale);
+    const { editor, field } = useTiptapEditor(props.name, '', extensions, {
+      attributes: spellcheckAttributes,
+    });
 
     const starterKit = useStarterKit(editor, { disabled: props.disabled });
     const headingOptions = getFeatureOptions(config.heading, { levels: [1, 2, 3, 4, 5, 6] });
@@ -58,6 +78,8 @@ const InnerEditor = forwardRef<HTMLDivElement, InnerEditorProps>(
           {...props}
           ref={forwardedRef}
           noPresetConfigured={!presetName}
+          spellcheck={config.spellcheck}
+          articleLocale={articleLocale}
         >
           <FeatureGuard featureValue={config?.heading}>
             {heading.headingSelect}
@@ -135,7 +157,7 @@ const InnerEditor = forwardRef<HTMLDivElement, InnerEditorProps>(
 // ─── Outer wrapper ───────────────────────────────────────────────────────────
 // Handles async preset fetching; renders loading state until config is ready.
 
-type RichTextInputProps = TiptapInputProps & {
+type RichTextInputProps = LocaleAwareInputProps & {
   attribute?: { options?: { preset?: string } };
 };
 
@@ -143,6 +165,7 @@ const RichTextInput = forwardRef<HTMLDivElement, RichTextInputProps>((props, for
   const { formatMessage } = useIntl();
   const rawPresetName = props.attribute?.options?.preset;
   const normalizedPresetName = rawPresetName?.trim() || undefined;
+  const articleLocale = getActiveArticleLocale(props);
 
   const { config, isLoading } = usePresetConfig(normalizedPresetName);
 
@@ -159,6 +182,7 @@ const RichTextInput = forwardRef<HTMLDivElement, RichTextInputProps>((props, for
       ref={forwardedRef}
       config={config ?? MINIMAL_PRESET_CONFIG}
       presetName={normalizedPresetName}
+      articleLocale={articleLocale}
       {...props}
     />
   );

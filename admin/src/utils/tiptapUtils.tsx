@@ -1,4 +1,4 @@
-import { Extensions, JSONContent } from '@tiptap/core';
+import { EditorOptions, Extensions, JSONContent } from '@tiptap/core';
 import { useEditor } from '@tiptap/react';
 import { type InputProps, useField } from '@strapi/strapi/admin';
 
@@ -44,12 +44,14 @@ function parseJSONContent(value: string | JSONContent | null | undefined, defaul
 export function useTiptapEditor(
   name: string,
   defaultValue: string = '',
-  extensions: Extensions = []
+  extensions: Extensions = [],
+  editorProps: EditorOptions['editorProps'] = {}
 ) {
   const field = useField(name);
 
   const editor = useEditor({
     extensions: extensions,
+    editorProps,
     content: parseJSONContent(field.value, defaultValue),
     onUpdate: ({ editor }) => {
       const json = editor.getJSON();

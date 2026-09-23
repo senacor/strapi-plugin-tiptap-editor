@@ -69,6 +69,7 @@ export interface TiptapPresetConfig {
   textColor?: boolean;
   highlightColor?: boolean;
   mediaLibrary?: boolean | Record<string, unknown>;
+  spellcheck?: boolean | Record<string, unknown>;
 }
 
 export interface TiptapPluginConfig {
@@ -100,6 +101,7 @@ export const PRESET_FEATURE_KEYS: Array<keyof TiptapPresetConfig> = [
   'textColor',
   'highlightColor',
   'mediaLibrary',
+  'spellcheck',
 ];
 
 // Fallback for unconfigured fields — deliberately minimal to prompt developers to configure

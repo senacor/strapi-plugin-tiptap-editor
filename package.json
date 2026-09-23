@@ -90,20 +90,15 @@
     "displayName": "Tiptap Editor",
     "description": "Customizable Tip Tap Editor"
   },
-  "name": "@notum-cz/strapi-plugin-tiptap-editor",
+  "name": "@senacor/strapi-plugin-tiptap-editor",
   "description": "Customizable Tip Tap Editor",
   "license": "MIT",
-  "author": "Notum Technologies s.r.o. <sales@notum.cz> (https://notum.tech)",
-  "maintainers": [
-    "Notum Technologies s.r.o. <sales@notum.cz>",
-    "Dominik Juriga <dominik.juriga@notum.cz>"
-  ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/notum-cz/strapi-plugin-tiptap-editor.git"
+    "url": "git+https://github.com/senacor/strapi-plugin-tiptap-editor.git"
   },
   "bugs": {
-    "url": "https://github.com/notum-cz/strapi-plugin-tiptap-editor/issues"
+    "url": "https://github.com/senacor/strapi-plugin-tiptap-editor/issues"
   },
-  "homepage": "https://github.com/notum-cz/strapi-plugin-tiptap-editor#readme"
+  "homepage": "https://github.com/senacor/strapi-plugin-tiptap-editor#readme"
 }

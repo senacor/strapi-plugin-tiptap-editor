@@ -1,12 +1,12 @@
 <div align="center">
   <picture>
-    <img src="https://raw.githubusercontent.com/notum-cz/strapi-plugin-tiptap-editor/main/assets/notum-tiptap-icon.png" height="250" alt="Notum Tiptap Plugin Logo"/>
+    <img src="https://raw.githubusercontent.com/senacor/strapi-plugin-tiptap-editor/main/assets/notum-tiptap-icon.png" height="250" alt="Notum Tiptap Plugin Logo"/>
   </picture>
 
   <h1>TipTap Editor Plugin for Strapi V5</h1>
   <p>by<br />
   <a href="https://notum.tech/?utm_source=strapi-plugin&utm_medium=github&utm_campaign=tiptap-readme">
-    <img style="margin-top: 0.5rem" src="https://raw.githubusercontent.com/notum-cz/strapi-plugin-tiptap-editor/main/assets/notum-logo.svg" alt="Notum Technologies" />
+    <img style="margin-top: 0.5rem" src="https://raw.githubusercontent.com/senacor/strapi-plugin-tiptap-editor/main/assets/notum-logo.svg" alt="Notum Technologies" />
   </a>
   </p>
 
@@ -18,45 +18,45 @@
   <!-- Badges -->
   <p>
     <a
-      href="https://github.com/notum-cz/strapi-plugin-tiptap-editor/graphs/contributors"
+      href="https://github.com/senacor/strapi-plugin-tiptap-editor/graphs/contributors"
     >
       <img
-        src="https://img.shields.io/github/contributors/notum-cz/strapi-plugin-tiptap-editor"
+        src="https://img.shields.io/github/contributors/senacor/strapi-plugin-tiptap-editor"
         alt="contributors"
       />
     </a>
-    <a href="https://github.com/notum-cz/strapi-plugin-tiptap-editor/commits">
+    <a href="https://github.com/senacor/strapi-plugin-tiptap-editor/commits">
       <img
-        src="https://img.shields.io/github/last-commit/notum-cz/strapi-plugin-tiptap-editor"
+        src="https://img.shields.io/github/last-commit/senacor/strapi-plugin-tiptap-editor"
         alt="last update"
       />
     </a>
-    <a href="https://github.com/notum-cz/strapi-plugin-tiptap-editor/issues/">
+    <a href="https://github.com/senacor/strapi-plugin-tiptap-editor/issues/">
       <img
-        src="https://img.shields.io/github/issues/notum-cz/strapi-plugin-tiptap-editor"
+        src="https://img.shields.io/github/issues/senacor/strapi-plugin-tiptap-editor"
         alt="open issues"
       />
     </a>
     <a
-      href="https://github.com/notum-cz/strapi-plugin-tiptap-editor/blob/main/LICENSE"
+      href="https://github.com/senacor/strapi-plugin-tiptap-editor/blob/main/LICENSE"
     >
       <img
-        src="https://img.shields.io/github/license/notum-cz/strapi-plugin-tiptap-editor"
+        src="https://img.shields.io/github/license/senacor/strapi-plugin-tiptap-editor"
         alt="license"
       />
     </a>
     <a
-      href="https://github.com/notum-cz/strapi-plugin-tiptap-editor/stargazers"
+      href="https://github.com/senacor/strapi-plugin-tiptap-editor/stargazers"
     >
       <img
-        src="https://img.shields.io/github/stars/notum-cz/strapi-plugin-tiptap-editor"
+        src="https://img.shields.io/github/stars/senacor/strapi-plugin-tiptap-editor"
         alt="stars"
       />
     </a>
   </p>
 
   <h4>
-    <a href="https://github.com/notum-cz/strapi-plugin-tiptap-editor/issues/"
+    <a href="https://github.com/senacor/strapi-plugin-tiptap-editor/issues/"
       >Report Bug or Request Feature</a
     >
   </h4>
@@ -94,6 +94,7 @@
   - [Theme](#theme)
     - [Colors](#colors)
     - [Custom Stylesheet](#custom-stylesheet)
+  - [Spellcheck](#spellcheck)
   - [Configuration Reference](#configuration-reference)
     - [Feature Values](#feature-values)
     - [Full Preset Example](#full-preset-example)
@@ -128,8 +129,8 @@
 
 <div align="center"> 
   <picture>
-    <source srcset="https://raw.githubusercontent.com/notum-cz/strapi-plugin-tiptap-editor/main/assets/tiptap-plugin-dark.png" media="(prefers-color-scheme: dark)">
-    <img src="https://raw.githubusercontent.com/notum-cz/strapi-plugin-tiptap-editor/main/assets/tiptap-plugin-light.png" alt="Strapi Plugin TipTap Editor Interface" />
+    <source srcset="https://raw.githubusercontent.com/senacor/strapi-plugin-tiptap-editor/main/assets/tiptap-plugin-dark.png" media="(prefers-color-scheme: dark)">
+    <img src="https://raw.githubusercontent.com/senacor/strapi-plugin-tiptap-editor/main/assets/tiptap-plugin-light.png" alt="Strapi Plugin TipTap Editor Interface" />
   </picture>
 </div>
 
@@ -155,10 +156,10 @@ This plugin is compatible with Strapi `v5.x.x` and has been tested on Strapi `v5
 
 ```bash
 # NPM
-npm i @notum-cz/strapi-plugin-tiptap-editor
+npm i @senacor/strapi-plugin-tiptap-editor
 
 # Yarn
-yarn add @notum-cz/strapi-plugin-tiptap-editor
+yarn add @senacor/strapi-plugin-tiptap-editor
 
 ```
 
@@ -678,23 +679,4 @@ The plugin validates your configuration at startup. If a preset contains an inva
 
 ## 🤝 Community
 
-### Maintained by [Notum Technologies](https://notum.tech/?utm_source=strapi-plugin&utm_medium=github&utm_campaign=tiptap-readme)
-
-Built and maintained by [Notum Technologies](https://notum.tech/?utm_source=strapi-plugin&utm_medium=github&utm_campaign=tiptap-readme), a Czech-based Strapi Enterprise Partner with a passion for open-source tooling.
-
-#### Current maintainer
-
-[Dominik Juriga](https://github.com/dominik-juriga)
-
-#### Contributors
-
-<a href="https://github.com/notum-cz/strapi-plugin-tiptap-editor/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=notum-cz/strapi-plugin-tiptap-editor" alt="Contributors" />
-</a>
-
-### Contributing
-
-Contributions of all kinds are welcome: code, documentation, bug reports, and feature ideas.
-<br> <br> Browse the [open issues](https://github.com/notum-cz/strapi-plugin-tiptap-editor/issues) to find something to work on, or open a new one to start a discussion. Pull requests are always appreciated!
-
-If you'd like to directly contribute, check our [Contributions document](https://github.com/notum-cz/strapi-plugin-tiptap-editor?tab=contributing-ov-file).
+Fork of [notum-cz/strapi-plugin-tiptap-editor](https://github.com/notum-cz/strapi-plugin-tiptap-editor).

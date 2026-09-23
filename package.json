@@ -74,7 +74,7 @@
     "react-router-dom": "6.30.3",
     "styled-components": "6.3.11",
     "typescript": "5.9.3",
-    "vitest": "4.1.0"
+    "vitest": "4.1.11"
   },
   "peerDependencies": {
     "@strapi/sdk-plugin": "6.1.1",

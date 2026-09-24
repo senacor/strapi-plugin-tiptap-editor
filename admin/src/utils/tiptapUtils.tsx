@@ -1,6 +1,7 @@
 import { EditorOptions, Extensions, JSONContent } from '@tiptap/core';
 import { useEditor } from '@tiptap/react';
 import { type InputProps, useField } from '@strapi/strapi/admin';
+import { useEffect, useRef } from 'react';
 
 export type { FieldValue } from '@strapi/strapi/admin';
 
@@ -41,6 +42,19 @@ function parseJSONContent(value: string | JSONContent | null | undefined, defaul
   }
 }
 
+function parseExternalJSONContent(
+  value: string | JSONContent | null | undefined
+): JSONContent | null {
+  if (!value) return tiptapContent('');
+
+  try {
+    return typeof value === 'string' ? JSON.parse(value) : value;
+  } catch (e) {
+    console.error('Failed to parse external JSON content:', e);
+    return null;
+  }
+}
+
 export function useTiptapEditor(
   name: string,
   defaultValue: string = '',
@@ -48,6 +62,7 @@ export function useTiptapEditor(
   editorProps: EditorOptions['editorProps'] = {}
 ) {
   const field = useField(name);
+  const lastEditorUpdate = useRef<string | null>(null);
 
   const editor = useEditor({
     extensions: extensions,
@@ -55,9 +70,40 @@ export function useTiptapEditor(
     content: parseJSONContent(field.value, defaultValue),
     onUpdate: ({ editor }) => {
       const json = editor.getJSON();
-      field.onChange(name, JSON.stringify(json));
+      const serialized = JSON.stringify(json);
+      lastEditorUpdate.current = serialized;
+      field.onChange(name, serialized);
     },
   });
+
+  useEffect(() => {
+    if (!editor) return;
+
+    const serializedFieldValue =
+      typeof field.value === 'string'
+        ? field.value
+        : field.value == null
+          ? ''
+          : JSON.stringify(field.value);
+
+    if (lastEditorUpdate.current === serializedFieldValue) {
+      lastEditorUpdate.current = null;
+      return;
+    }
+
+    lastEditorUpdate.current = null;
+    const externalContent = parseExternalJSONContent(field.value);
+    if (!externalContent) return;
+
+    const currentContent = editor.getJSON();
+    if (JSON.stringify(currentContent) === JSON.stringify(externalContent)) return;
+
+    try {
+      editor.commands.setContent(externalContent, { emitUpdate: false });
+    } catch (e) {
+      console.error('Failed to apply external JSON content:', e);
+    }
+  }, [editor, field.value]);
 
   return { editor, field };
 }

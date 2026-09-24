@@ -55,6 +55,13 @@ function parseExternalJSONContent(
   }
 }
 
+function serializeFieldValue(value: string | JSONContent | null | undefined): string {
+  if (typeof value === 'string') return value;
+  if (value == null) return '';
+
+  return JSON.stringify(value) ?? '';
+}
+
 export function useTiptapEditor(
   name: string,
   defaultValue: string = '',
@@ -79,12 +86,7 @@ export function useTiptapEditor(
   useEffect(() => {
     if (!editor) return;
 
-    const serializedFieldValue =
-      typeof field.value === 'string'
-        ? field.value
-        : field.value == null
-          ? ''
-          : JSON.stringify(field.value);
+    const serializedFieldValue = serializeFieldValue(field.value);
 
     if (lastEditorUpdate.current === serializedFieldValue) {
       lastEditorUpdate.current = null;

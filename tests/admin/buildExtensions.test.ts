@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
+import { Editor } from '@tiptap/core';
 
 // Mock Strapi design system and React hooks used by Heading.tsx (not needed for buildExtensions)
 vi.mock('@strapi/design-system', () => ({
@@ -49,6 +50,27 @@ describe('buildExtensions', () => {
     const heading = extensions.find((ext: any) => ext.name === 'heading');
     expect(heading).toBeDefined();
     expect((heading as any).options.levels).toEqual([2, 3]);
+  });
+
+  it('preserves existing semantic heading tags when the SEO tag selector is disabled', () => {
+    const content = {
+      type: 'doc',
+      content: [
+        {
+          type: 'heading',
+          attrs: { level: 2, tag: 'h4' },
+          content: [{ type: 'text', text: 'Existing heading' }],
+        },
+      ],
+    };
+    const editor = new Editor({
+      element: null,
+      extensions: buildExtensions({ heading: { seoTag: false } }),
+      content,
+    });
+
+    expect(editor.getJSON()).toEqual(content);
+    editor.destroy();
   });
 
   it('does not include HeadingWithSEOTag when heading is false', () => {

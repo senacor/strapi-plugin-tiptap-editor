@@ -56,6 +56,13 @@ const config = {
         if (invalidKeys.length > 0) {
           allInvalidKeys.push(...invalidKeys);
         }
+
+        const heading = (presetConfig as TiptapPresetConfig).heading;
+        if (isPlainObject(heading) && heading.seoTag !== undefined && typeof heading.seoTag !== 'boolean') {
+          throw new Error(
+            `tiptap-editor config.presets.${presetName}.heading.seoTag must be a boolean`
+          );
+        }
       }
 
       if (allInvalidKeys.length > 0) {

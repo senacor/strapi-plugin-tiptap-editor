@@ -58,7 +58,10 @@ const InnerEditor = forwardRef<HTMLDivElement, InnerEditorProps>(
     });
 
     const starterKit = useStarterKit(editor, { disabled: props.disabled });
-    const headingOptions = getFeatureOptions(config.heading, { levels: [1, 2, 3, 4, 5, 6] });
+    const headingOptions = getFeatureOptions(config.heading, {
+      levels: [1, 2, 3, 4, 5, 6],
+      seoTag: false,
+    });
     const heading = useHeading(editor, { disabled: props.disabled, levels: headingOptions?.levels });
     const link = useLink(editor, { disabled: props.disabled });
     const image = useImage(editor, { disabled: props.disabled });
@@ -83,7 +86,7 @@ const InnerEditor = forwardRef<HTMLDivElement, InnerEditorProps>(
         >
           <FeatureGuard featureValue={config?.heading}>
             {heading.headingSelect}
-            {heading.headingTagSelect}
+            {headingOptions?.seoTag === true ? heading.headingTagSelect : null}
             <Spacer width={8} />
           </FeatureGuard>
           <FeatureGuard featureValue={config?.bold}>

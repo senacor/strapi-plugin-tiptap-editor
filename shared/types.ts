@@ -20,6 +20,7 @@ export type TextAlignConfig = {
 
 export type HeadingConfig = {
   levels?: HeadingLevel[];
+  seoTag?: boolean;
 };
 
 // ─── Theme types ─────────────────────────────────────────────────────────────

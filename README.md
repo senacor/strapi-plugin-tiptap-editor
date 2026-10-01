@@ -316,9 +316,9 @@ export default () => ({
 
 | Key       | Description            | Toolbar                           |
 | --------- | ---------------------- | --------------------------------- |
-| `heading` | Heading levels (h1-h6) | Style dropdown + SEO tag dropdown |
+| `heading` | Heading levels (h1-h6) | Style dropdown; optional SEO tag dropdown |
 
-The heading extension includes an SEO tag selector that lets content editors set the semantic HTML tag independently from the visual heading level. This allows for proper document outline without being constrained by visual styles.
+The heading extension provides a style selector for visual heading levels. The SEO tag selector is optional and lets content editors set the semantic HTML tag independently from the visual heading level. It is hidden by default and must be enabled explicitly with `seoTag: true` in the heading options.
 
 **Simple usage** — enables all heading levels (h1-h6):
 
@@ -328,6 +328,8 @@ The heading extension includes an SEO tag selector that lets content editors set
 }
 ```
 
+This shows the heading style selector and hides the SEO tag selector.
+
 **Custom levels** — restrict which heading levels are available:
 
 ```ts
@@ -335,11 +337,14 @@ The heading extension includes an SEO tag selector that lets content editors set
   // Only allow h1, h2, and h3 in the style dropdown
   heading: {
     levels: [1, 2, 3],
+    seoTag: true,
   },
 }
 ```
 
-The `levels` array accepts values from `1` to `6`. The SEO tag dropdown always shows all six levels (h1-h6) regardless of this setting, since the semantic tag is independent of the visual heading level.
+The `levels` array accepts values from `1` to `6`. Set `seoTag: true` to show the SEO tag dropdown. Omit it or set it to `false` to hide that control. When shown, the SEO tag dropdown offers all six levels (h1-h6) regardless of the visual heading levels.
+
+Existing presets that relied on the previously always-visible SEO tag selector must add `seoTag: true` inside their `heading` options to keep it available. Hiding the selector does not remove SEO tags already stored in heading content.
 
 ### Links
 
@@ -654,6 +659,7 @@ export default () => ({
           // Headings — all levels (same as heading: true)
           heading: {
             levels: [1, 2, 3, 4, 5, 6],
+            seoTag: true,
           },
 
           // Links — custom HTML attributes

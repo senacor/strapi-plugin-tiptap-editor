@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.3.0 - 2026-10-01
+
+* Hide the heading SEO tag selector by default. Set `seoTag: true` inside the `heading` preset options to show it; existing presets that relied on the selector must opt in again.
+
 ## v1.2.8 - 2026-09-24
 
 * Align `react-intl` with Strapi 5.54.0 by using version 6.6.2, which supports React 18.

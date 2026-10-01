@@ -64,7 +64,10 @@ const mockStarterKit = {
   codeButton: null,
   blockquoteButton: null,
 };
-const mockHeading = { headingSelect: null, headingTagSelect: null };
+const mockHeading = {
+  headingSelect: { type: 'HeadingStyleSelect' },
+  headingTagSelect: { type: 'HeadingTagSelect' },
+};
 const mockLink = { linkButton: null, linkDialog: null };
 const mockScript = { superscriptButton: null, subscriptButton: null };
 const mockTable = {
@@ -376,5 +379,34 @@ describe('RichTextInput', () => {
     const result = RichTextInput(props as any, null) as any;
     const featureGuards = findElements(result, 'FeatureGuard');
     expect(featureGuards.some((fg) => fg.props?.featureValue === config.highlightColor)).toBe(true);
+  });
+
+  it('shows the SEO tag selector only when heading.seoTag is explicitly true', () => {
+    const renderWithConfig = (heading: any) => {
+      mockUsePresetConfig.mockReturnValue({
+        config: { heading },
+        isLoading: false,
+      });
+      const result = RichTextInput(
+        { name: 'content', attribute: { options: { preset: 'article' } } } as any,
+        null
+      );
+      return {
+        styleSelectors: findElements(result, 'HeadingStyleSelect'),
+        tagSelectors: findElements(result, 'HeadingTagSelect'),
+      };
+    };
+
+    const defaultHeading = renderWithConfig(true);
+    expect(defaultHeading.styleSelectors).toHaveLength(1);
+    expect(defaultHeading.tagSelectors).toHaveLength(0);
+
+    const explicitlyDisabled = renderWithConfig({ seoTag: false });
+    expect(explicitlyDisabled.styleSelectors).toHaveLength(1);
+    expect(explicitlyDisabled.tagSelectors).toHaveLength(0);
+
+    const explicitlyEnabled = renderWithConfig({ seoTag: true });
+    expect(explicitlyEnabled.styleSelectors).toHaveLength(1);
+    expect(explicitlyEnabled.tagSelectors).toHaveLength(1);
   });
 });

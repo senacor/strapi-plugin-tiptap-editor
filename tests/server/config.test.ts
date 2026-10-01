@@ -12,6 +12,21 @@ describe('config validator (SERVER-01)', () => {
     ).not.toThrow();
   });
 
+  it('accepts a boolean heading SEO tag option', () => {
+    expect(() =>
+      config.validator({ presets: { rich: { heading: { levels: [1, 2], seoTag: true } } } })
+    ).not.toThrow();
+    expect(() =>
+      config.validator({ presets: { rich: { heading: { seoTag: false } } } })
+    ).not.toThrow();
+  });
+
+  it('rejects a non-boolean heading SEO tag option', () => {
+    expect(() =>
+      config.validator({ presets: { rich: { heading: { seoTag: 'yes' } } } })
+    ).toThrowError(/heading\.seoTag must be a boolean/);
+  });
+
   it('throws for preset with invalid feature key — names the bad key', () => {
     expect(() =>
       config.validator({ presets: { rich: { unknownFeature: true } } })

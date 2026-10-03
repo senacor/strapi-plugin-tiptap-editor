@@ -60,7 +60,7 @@
     },
     {
       "type": "heading",
-      "attrs": { "level": 2, "tag": "h2", "textAlign": "left" },
+      "attrs": { "level": 2, "tag": "h2", "textAlign": "left", "id": "headings-h1-h6" },
       "content": [{ "type": "text", "text": "Headings (H1–H6)" }]
     },
     {
@@ -295,7 +295,23 @@
           ],
           "text": "Example Website"
         },
-        { "type": "text", "text": " for more information about lorem ipsum." }
+        { "type": "text", "text": " for more information about lorem ipsum, or jump to the " },
+        {
+          "type": "text",
+          "marks": [
+            {
+              "type": "link",
+              "attrs": {
+                "href": "#headings-h1-h6",
+                "target": "_blank",
+                "rel": "noopener noreferrer nofollow",
+                "class": null
+              }
+            }
+          ],
+          "text": "Headings section"
+        },
+        { "type": "text", "text": " on this page." }
       ]
     },
     {

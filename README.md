@@ -316,7 +316,7 @@ export default () => ({
 
 | Key       | Description            | Toolbar                           |
 | --------- | ---------------------- | --------------------------------- |
-| `heading` | Heading levels (h1-h6) | Style dropdown; optional SEO tag dropdown |
+| `heading` | Heading levels (h1-h6) | Style dropdown; optional SEO tag and jump-link controls |
 
 The heading extension provides a style selector for visual heading levels. The SEO tag selector is optional and lets content editors set the semantic HTML tag independently from the visual heading level. It is hidden by default and must be enabled explicitly with `seoTag: true` in the heading options.
 
@@ -328,7 +328,7 @@ The heading extension provides a style selector for visual heading levels. The S
 }
 ```
 
-This shows the heading style selector and hides the SEO tag selector.
+This shows the heading style selector and hides the SEO tag and jump-link controls.
 
 **Custom levels** — restrict which heading levels are available:
 
@@ -338,6 +338,7 @@ This shows the heading style selector and hides the SEO tag selector.
   heading: {
     levels: [1, 2, 3],
     seoTag: true,
+    jumpLinks: true,
   },
 }
 ```
@@ -346,6 +347,27 @@ The `levels` array accepts values from `1` to `6`. Set `seoTag: true` to show th
 
 Existing presets that relied on the previously always-visible SEO tag selector must add `seoTag: true` inside their `heading` options to keep it available. Hiding the selector does not remove SEO tags already stored in heading content.
 
+Set `jumpLinks: true` inside the `heading` options to enable heading anchor IDs and suggestions in the link dialog. Omit it or set it to `false` to hide those controls. Existing IDs remain in stored content when the controls are hidden, and manually entered `#id` links still work.
+
+When enabled, select a heading and use the `#` toolbar button to add, edit, or remove its ID in a dialog. The ID must be unique within that editor field. Surrounding whitespace is trimmed, while spaces within the ID and a leading `#` are rejected. A heading with ID `details` can be linked with `#details`. Copying a heading within the same document clears the copied ID when it would be a duplicate.
+
+The ID is stored as an optional `id` attribute on the heading node in Tiptap JSON. When rendering stored JSON on a frontend, extend the Heading extension to recognize that attribute so the output includes `id="details"`:
+
+```ts
+import Heading from '@tiptap/extension-heading';
+
+const HeadingWithAnchor = Heading.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      id: { default: null },
+    };
+  },
+});
+```
+
+Use `HeadingWithAnchor` in the frontend renderer's extension list in place of the default Heading extension. Existing content without IDs remains valid.
+
 ### Links
 
 | Key    | Description | Toolbar                   |
@@ -353,6 +375,8 @@ Existing presets that relied on the previously always-visible SEO tag selector m
 | `link` | Hyperlinks  | Link button + link dialog |
 
 Links open a dialog where editors can enter a URL. By default, links do not open on click in the editor (to allow editing).
+
+When `heading.jumpLinks` is enabled and headings in the current editor field have anchor IDs, the link dialog suggests them by heading text and ID. Choosing one fills the URL with `#<id>`. Manual URLs, link editing, and link removal remain available. Renaming or removing an anchor does not rewrite existing links.
 
 **Simple usage:**
 
@@ -656,10 +680,11 @@ export default () => ({
           bulletList: true,
           orderedList: true,
 
-          // Headings — all levels (same as heading: true)
+          // Headings — all levels, with optional SEO tags and jump links
           heading: {
             levels: [1, 2, 3, 4, 5, 6],
             seoTag: true,
+            jumpLinks: true,
           },
 
           // Links — custom HTML attributes

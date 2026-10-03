@@ -1,4 +1,4 @@
-import { forwardRef, useMemo } from 'react';
+import { forwardRef, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { Box } from '@strapi/design-system';
 import BaseTiptapInput from './BaseTiptapInput';
@@ -18,7 +18,7 @@ import { useHighlightColor } from '../extensions/HighlightColor';
 import { usePresetConfig } from '../hooks/usePresetConfig';
 import { buildExtensions } from '../utils/buildExtensions';
 import { getSpellcheckAttributes } from '../utils/spellcheck';
-import { TiptapPresetConfig, MINIMAL_PRESET_CONFIG, getFeatureOptions } from '../../../shared/types';
+import { TiptapPresetConfig, MINIMAL_PRESET_CONFIG, getFeatureOptions, isFeatureEnabled } from '../../../shared/types';
 
 type LocaleAwareInputProps = TiptapInputProps & {
   locale?: string;
@@ -47,6 +47,7 @@ type InnerEditorProps = LocaleAwareInputProps & {
 
 const InnerEditor = forwardRef<HTMLDivElement, InnerEditorProps>(
   ({ config, presetName, articleLocale, ...props }, forwardedRef) => {
+    const [cleanedAnchors, setCleanedAnchors] = useState(0);
     // Memoize on presetName string — stable across parent re-renders
     const extensions = useMemo(() => {
       return buildExtensions(config);
@@ -55,15 +56,17 @@ const InnerEditor = forwardRef<HTMLDivElement, InnerEditorProps>(
     const spellcheckAttributes = getSpellcheckAttributes(config.spellcheck, articleLocale);
     const { editor, field } = useTiptapEditor(props.name, '', extensions, {
       attributes: spellcheckAttributes,
-    });
+    }, setCleanedAnchors);
 
     const starterKit = useStarterKit(editor, { disabled: props.disabled });
     const headingOptions = getFeatureOptions(config.heading, {
       levels: [1, 2, 3, 4, 5, 6],
       seoTag: false,
+      jumpLinks: false,
     });
     const heading = useHeading(editor, { disabled: props.disabled, levels: headingOptions?.levels });
-    const link = useLink(editor, { disabled: props.disabled });
+    const jumpLinksEnabled = isFeatureEnabled(config.heading) && headingOptions?.jumpLinks === true;
+    const link = useLink(editor, { disabled: props.disabled, jumpLinks: jumpLinksEnabled });
     const image = useImage(editor, { disabled: props.disabled });
     const script = useScript(editor, { disabled: props.disabled });
     const table = useTable(editor, { disabled: props.disabled });
@@ -81,12 +84,15 @@ const InnerEditor = forwardRef<HTMLDivElement, InnerEditorProps>(
           {...props}
           ref={forwardedRef}
           noPresetConfigured={!presetName}
+          anchorCleanupCount={cleanedAnchors}
           spellcheck={config.spellcheck}
           articleLocale={articleLocale}
         >
           <FeatureGuard featureValue={config?.heading}>
             {heading.headingSelect}
             {headingOptions?.seoTag === true ? heading.headingTagSelect : null}
+            {jumpLinksEnabled ? heading.headingAnchorButton : null}
+            {jumpLinksEnabled ? heading.headingAnchorDialog : null}
             <Spacer width={8} />
           </FeatureGuard>
           <FeatureGuard featureValue={config?.bold}>

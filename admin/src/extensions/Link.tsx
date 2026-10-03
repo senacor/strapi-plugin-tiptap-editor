@@ -6,8 +6,9 @@ import LinkDialog, { LinkDialogPayload } from '../components/LinkDialog';
 import { useRef, useState } from 'react';
 import { ToolbarButton } from '../components/ToolbarButton';
 import { useIntl } from 'react-intl';
+import { collectHeadingAnchors, HeadingAnchor } from '../utils/headingAnchors';
 
-export function useLink(editor: Editor | null, props: { disabled?: boolean } = { disabled: false }) {
+export function useLink(editor: Editor | null, props: { disabled?: boolean; jumpLinks?: boolean } = { disabled: false }) {
   const { formatMessage } = useIntl();
   const editorState = useEditorState({
     editor,
@@ -25,6 +26,7 @@ export function useLink(editor: Editor | null, props: { disabled?: boolean } = {
   const [showLinkDialog, setShowLinkDialog] = useState(false);
   const [currentLinkUrl, setCurrentLinkUrl] = useState<string>('');
   const [linkDialogMode, setLinkDialogMode] = useState<'add' | 'edit'>('add');
+  const [anchorSuggestions, setAnchorSuggestions] = useState<HeadingAnchor[]>([]);
   const selectionRef = useRef<{ from: number; to: number } | null>(null);
 
   const openAddLinkDialog = () => {
@@ -33,6 +35,7 @@ export function useLink(editor: Editor | null, props: { disabled?: boolean } = {
     selectionRef.current = { from, to };
     setCurrentLinkUrl('');
     setLinkDialogMode('add');
+    setAnchorSuggestions(props.jumpLinks ? collectHeadingAnchors(editor.getJSON()) : []);
     setShowLinkDialog(true);
   };
 
@@ -43,6 +46,7 @@ export function useLink(editor: Editor | null, props: { disabled?: boolean } = {
     const currentHref = (editor.getAttributes('link').href as string | undefined) || '';
     setCurrentLinkUrl(currentHref);
     setLinkDialogMode('edit');
+    setAnchorSuggestions(props.jumpLinks ? collectHeadingAnchors(editor.getJSON()) : []);
     setShowLinkDialog(true);
   };
 
@@ -107,6 +111,7 @@ export function useLink(editor: Editor | null, props: { disabled?: boolean } = {
         open={showLinkDialog}
         url={currentLinkUrl}
         mode={linkDialogMode}
+        anchors={anchorSuggestions}
         onClose={() => setShowLinkDialog(false)}
         onSave={linkDialogMode === 'add' ? handleSaveNewLink : handleSaveEditedLink}
         onRemove={handleRemoveLink}

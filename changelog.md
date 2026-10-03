@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.4.0 - 2026-10-03
+
+* Add optional, unique anchor IDs to headings (h1–h6), with an editor dialog for setting and removing them.
+* Suggest headings with anchor IDs in the link dialog and create fragment links in the form `#<id>`.
+* Add `heading.jumpLinks: true` to enable the anchor controls and link suggestions per preset. The option is disabled by default; existing IDs and manually entered fragment links remain available when it is off.
+* Add German translations for editor controls, hints, and validation messages.
+
 ## v1.3.0 - 2026-10-01
 
 * Hide the heading SEO tag selector by default. Set `seoTag: true` inside the `heading` preset options to show it; existing presets that relied on the selector must opt in again.

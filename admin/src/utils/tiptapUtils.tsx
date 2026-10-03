@@ -2,6 +2,7 @@ import { EditorOptions, Extensions, JSONContent } from '@tiptap/core';
 import { useEditor } from '@tiptap/react';
 import { type InputProps, useField } from '@strapi/strapi/admin';
 import { useEffect, useRef } from 'react';
+import { removeDuplicateHeadingAnchors } from './headingAnchors';
 
 export type { FieldValue } from '@strapi/strapi/admin';
 
@@ -66,7 +67,8 @@ export function useTiptapEditor(
   name: string,
   defaultValue: string = '',
   extensions: Extensions = [],
-  editorProps: EditorOptions['editorProps'] = {}
+  editorProps: EditorOptions['editorProps'] = {},
+  onAnchorCleanup?: (removed: number) => void
 ) {
   const field = useField(name);
   const lastEditorUpdate = useRef<string | null>(null);
@@ -74,7 +76,7 @@ export function useTiptapEditor(
   const editor = useEditor({
     extensions: extensions,
     editorProps,
-    content: parseJSONContent(field.value, defaultValue),
+    content: removeDuplicateHeadingAnchors(parseJSONContent(field.value, defaultValue)).content,
     onUpdate: ({ editor }) => {
       const json = editor.getJSON();
       const serialized = JSON.stringify(json);
@@ -96,16 +98,23 @@ export function useTiptapEditor(
     lastEditorUpdate.current = null;
     const externalContent = parseExternalJSONContent(field.value);
     if (!externalContent) return;
+    const normalized = removeDuplicateHeadingAnchors(externalContent);
+    if (normalized.removed > 0) {
+      const serialized = JSON.stringify(normalized.content);
+      lastEditorUpdate.current = serialized;
+      field.onChange(name, serialized);
+      onAnchorCleanup?.(normalized.removed);
+    }
 
     const currentContent = editor.getJSON();
-    if (JSON.stringify(currentContent) === JSON.stringify(externalContent)) return;
+    if (JSON.stringify(currentContent) === JSON.stringify(normalized.content)) return;
 
     try {
-      editor.commands.setContent(externalContent, { emitUpdate: false });
+      editor.commands.setContent(normalized.content, { emitUpdate: false });
     } catch (e) {
       console.error('Failed to apply external JSON content:', e);
     }
-  }, [editor, field.value]);
+  }, [editor, field.value, name, onAnchorCleanup]);
 
   return { editor, field };
 }

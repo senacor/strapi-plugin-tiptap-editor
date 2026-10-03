@@ -63,6 +63,11 @@ const config = {
             `tiptap-editor config.presets.${presetName}.heading.seoTag must be a boolean`
           );
         }
+        if (isPlainObject(heading) && heading.jumpLinks !== undefined && typeof heading.jumpLinks !== 'boolean') {
+          throw new Error(
+            `tiptap-editor config.presets.${presetName}.heading.jumpLinks must be a boolean`
+          );
+        }
       }
 
       if (allInvalidKeys.length > 0) {

@@ -1,6 +1,7 @@
 import React from 'react';
-import { Button, Dialog, Field, TextInput } from '@strapi/design-system';
+import { Box, Button, Dialog, Field, SingleSelect, SingleSelectOption, TextInput } from '@strapi/design-system';
 import { useIntl } from 'react-intl';
+import type { HeadingAnchor } from '../utils/headingAnchors';
 
 export type LinkDialogPayload = { url: string };
 
@@ -8,6 +9,7 @@ interface LinkDialogProps {
   open: boolean;
   url: string | undefined;
   mode: 'add' | 'edit';
+  anchors?: HeadingAnchor[];
   onClose: () => void;
   onSave: (payload: LinkDialogPayload) => void;
   onRemove: () => void;
@@ -18,6 +20,7 @@ export const LinkDialog: React.FC<LinkDialogProps> = ({
   open,
   url,
   mode,
+  anchors = [],
   onClose,
   onSave,
   onRemove,
@@ -51,6 +54,28 @@ export const LinkDialog: React.FC<LinkDialogProps> = ({
             : formatMessage({ id: 'tiptap-editor.link.editLink', defaultMessage: 'Edit link' })
           }</Dialog.Header>
           <Dialog.Body>
+            {anchors.length > 0 && (
+              <Box width="100%" paddingBottom={4}>
+                <Field.Root width="100%">
+                  <Field.Label>
+                    {formatMessage({ id: 'tiptap-editor.link.anchorSuggestions', defaultMessage: 'Jump to heading' })}
+                  </Field.Label>
+                  <Box width="100%">
+                    <SingleSelect
+                      placeholder={formatMessage({ id: 'tiptap-editor.link.anchorPlaceholder', defaultMessage: 'Choose a heading' })}
+                      value={anchors.find(({ id }) => value === `#${id}`)?.id}
+                      onChange={(id: string | number) => setValue(`#${id}`)}
+                    >
+                      {anchors.map(({ id, text }) => (
+                        <SingleSelectOption key={id} value={id}>
+                          {text || id} (#{id})
+                        </SingleSelectOption>
+                      ))}
+                    </SingleSelect>
+                  </Box>
+                </Field.Root>
+              </Box>
+            )}
             <Field.Root width="100%">
               <Field.Label>{formatMessage({ id: 'tiptap-editor.link.urlLabel', defaultMessage: 'URL' })}</Field.Label>
               <TextInput

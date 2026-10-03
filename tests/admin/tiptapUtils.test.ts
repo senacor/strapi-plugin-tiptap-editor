@@ -113,4 +113,24 @@ describe('useTiptapEditor external content synchronization', () => {
     expect(setContent).not.toHaveBeenCalled();
     expect(mockEditor.getJSON()).toEqual(validDocumentA);
   });
+
+  it('normalizes duplicate heading IDs from external content before syncing the field', () => {
+    const duplicateDocument = {
+      type: 'doc',
+      content: [
+        { type: 'heading', attrs: { level: 2, id: 'same' }, content: [{ type: 'text', text: 'First' }] },
+        { type: 'heading', attrs: { level: 2, id: 'same' }, content: [{ type: 'text', text: 'Second' }] },
+      ],
+    };
+    const onCleanup = vi.fn();
+    fieldValue = JSON.stringify(duplicateDocument);
+
+    useTiptapEditor('content', '', [], {}, onCleanup);
+
+    const normalized = JSON.parse(fieldOnChange.mock.calls[0][1]);
+    expect(normalized.content[0].attrs.id).toBe('same');
+    expect(normalized.content[1].attrs.id).toBeNull();
+    expect(normalized.content[1].content[0].text).toBe('Second');
+    expect(onCleanup).toHaveBeenCalledWith(1);
+  });
 });

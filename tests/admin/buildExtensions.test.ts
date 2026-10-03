@@ -69,7 +69,8 @@ describe('buildExtensions', () => {
       content,
     });
 
-    expect(editor.getJSON()).toEqual(content);
+    expect(editor.getJSON().content?.[0].attrs).toEqual({ level: 2, tag: 'h4', id: null });
+    expect(editor.getJSON().content?.[0].content).toEqual(content.content[0].content);
     editor.destroy();
   });
 

@@ -14,6 +14,7 @@ type TiptapInputProps = InputProps & {
   field: FieldValue;
   children?: React.ReactNode;
   noPresetConfigured?: boolean;
+  anchorCleanupCount?: number;
   spellcheck?: unknown;
   articleLocale?: string;
 };
@@ -31,6 +32,7 @@ const BaseTiptapInput = forwardRef<HTMLDivElement, TiptapInputProps>(
       field,
       children,
       noPresetConfigured,
+      anchorCleanupCount = 0,
       spellcheck,
       articleLocale,
     },
@@ -75,6 +77,18 @@ const BaseTiptapInput = forwardRef<HTMLDivElement, TiptapInputProps>(
                       id: 'tiptap-editor.noPreset.message',
                       defaultMessage: 'No editor preset configured — showing minimal editor',
                     })}
+                  </Typography>
+                </Status>
+              </Box>
+            )}
+            {anchorCleanupCount > 0 && (
+              <Box paddingLeft={2} paddingRight={2} paddingTop={2}>
+                <Status variant="secondary">
+                  <Typography variant="pi">
+                    {formatMessage(
+                      { id: 'tiptap-editor.heading.anchorCleaned', defaultMessage: '{count} duplicate heading IDs were removed.' },
+                      { count: anchorCleanupCount }
+                    )}
                   </Typography>
                 </Status>
               </Box>

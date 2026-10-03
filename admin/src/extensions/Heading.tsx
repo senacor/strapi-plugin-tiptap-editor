@@ -3,6 +3,13 @@ import { useEditorState } from '@tiptap/react';
 import Heading from '@tiptap/extension-heading';
 import { SingleSelect, SingleSelectOption } from '@strapi/design-system';
 import { useIntl } from 'react-intl';
+import { useState } from 'react';
+import { Fragment, Slice } from '@tiptap/pm/model';
+import { Plugin } from '@tiptap/pm/state';
+import { isHeadingAnchorAvailable, parseHeadingAnchorId } from '../utils/headingAnchors';
+import { Hashtag } from '@strapi/icons';
+import { ToolbarButton } from '../components/ToolbarButton';
+import { HeadingAnchorDialog } from '../components/HeadingAnchorDialog';
 
 // Base extension class (un-configured) — used by buildExtensions for dynamic levels
 export const BaseHeadingWithSEOTag = Heading.extend({
@@ -10,7 +17,54 @@ export const BaseHeadingWithSEOTag = Heading.extend({
     return {
       ...(this as any).parent?.(), // must cast to any to avoid TS error
       tag: { default: null },
+      id: { default: null },
     };
+  },
+  addProseMirrorPlugins() {
+    return [
+      ...(this.parent?.() ?? []),
+      new Plugin({
+        props: {
+          transformPasted(slice, view) {
+            const existing = new Set<string>();
+            view.state.doc.descendants((node) => {
+              if (node.type.name === 'heading' && typeof node.attrs.id === 'string') {
+                existing.add(node.attrs.id);
+              }
+            });
+            const transform = (fragment: Fragment): Fragment =>
+              Fragment.fromArray(
+                fragment.content.map((node) => {
+                  const children = node.content.size ? transform(node.content) : node.content;
+                  if (node.type.name === 'heading' && typeof node.attrs.id === 'string' && node.attrs.id) {
+                    if (existing.has(node.attrs.id)) {
+                      return node.type.create({ ...node.attrs, id: null }, children, node.marks);
+                    }
+                    existing.add(node.attrs.id);
+                  }
+                  return children === node.content ? node : node.copy(children);
+                })
+              );
+            return new Slice(transform(slice.content), slice.openStart, slice.openEnd);
+          },
+        },
+        appendTransaction(_transactions, _oldState, newState) {
+          const seen = new Set<string>();
+          const tr = newState.tr;
+          newState.doc.descendants((node, position) => {
+            if (node.type.name !== 'heading' || typeof node.attrs.id !== 'string' || !node.attrs.id) {
+              return;
+            }
+            if (seen.has(node.attrs.id)) {
+              tr.setNodeMarkup(position, undefined, { ...node.attrs, id: null });
+            } else {
+              seen.add(node.attrs.id);
+            }
+          });
+          return tr.docChanged ? tr : null;
+        },
+      }),
+    ];
   },
 });
 
@@ -20,19 +74,102 @@ export const HeadingWithSEOTag = BaseHeadingWithSEOTag.configure({ levels: [1, 2
 export function useHeading(editor: Editor | null, props: { disabled?: boolean; levels?: number[] } = { disabled: false }) {
   const { formatMessage } = useIntl();
   const levels = props.levels ?? [1, 2, 3, 4, 5, 6];
+  const [anchorDialogOpen, setAnchorDialogOpen] = useState(false);
+  const [anchorPosition, setAnchorPosition] = useState<number | null>(null);
+  const [anchorInitiallySet, setAnchorInitiallySet] = useState(false);
+  const [anchorDraft, setAnchorDraft] = useState('');
+  const [anchorError, setAnchorError] = useState<string | null>(null);
   const editorState = useEditorState({
     editor,
     selector: (ctx) => {
       if (!ctx.editor) {
-        return { headingLevel: undefined, headingTag: undefined, isParagraph: false };
+        return { headingLevel: undefined, headingTag: undefined, headingId: undefined, headingPos: undefined, isParagraph: false };
       }
+      const $from = ctx.editor.state.selection.$from;
+      const headingPos = $from.parent.type.name === 'heading' ? $from.before() : undefined;
       return {
         headingLevel: ctx.editor.getAttributes('heading').level as number | undefined,
         headingTag: ctx.editor.getAttributes('heading').tag as string | undefined,
+        headingId: ctx.editor.getAttributes('heading').id as string | undefined,
+        headingPos,
         isParagraph: ctx.editor.isActive('paragraph') ?? false,
       };
     },
   });
+
+  const validateAnchorDraft = (value: string, position: number): string | null => {
+    if (!editor) return null;
+    const parsed = parseHeadingAnchorId(value);
+    if (parsed.error) {
+      return formatMessage({
+        id: `tiptap-editor.heading.anchorError.${parsed.error}`,
+        defaultMessage: parsed.error === 'leadingHash'
+          ? 'Enter the ID without #.'
+          : 'The ID cannot contain spaces.',
+      });
+    }
+    if (parsed.id && !isHeadingAnchorAvailable(editor.state.doc, parsed.id, position)) {
+      return formatMessage({
+        id: 'tiptap-editor.heading.anchorError.duplicate',
+        defaultMessage: 'This ID is already used by another heading.',
+      });
+    }
+    return null;
+  };
+
+  const closeAnchorDialog = () => {
+    setAnchorDialogOpen(false);
+    setAnchorError(null);
+  };
+
+  const openAnchorDialog = () => {
+    if (!editor || editorState?.headingPos === undefined) return;
+    const heading = editor.state.doc.nodeAt(editorState.headingPos);
+    if (!heading || heading.type.name !== 'heading') return;
+    setAnchorPosition(editorState.headingPos);
+    setAnchorDraft(heading.attrs.id ?? '');
+    setAnchorInitiallySet(Boolean(heading.attrs.id));
+    setAnchorError(null);
+    setAnchorDialogOpen(true);
+  };
+
+  const changeAnchorDraft = (value: string) => {
+    setAnchorDraft(value);
+    setAnchorError(anchorPosition === null ? null : validateAnchorDraft(value, anchorPosition));
+  };
+
+  const commitAnchorId = () => {
+    if (!editor || anchorPosition === null) return;
+    const error = validateAnchorDraft(anchorDraft, anchorPosition);
+    if (error) {
+      setAnchorError(error);
+      return;
+    }
+    const heading = editor.state.doc.nodeAt(anchorPosition);
+    if (!heading || heading.type.name !== 'heading') return;
+    const parsed = parseHeadingAnchorId(anchorDraft);
+    if (heading.attrs.id === parsed.id) {
+      closeAnchorDialog();
+      return;
+    }
+    editor.view.dispatch(
+      editor.state.tr.setNodeMarkup(anchorPosition, undefined, {
+        ...heading.attrs,
+        id: parsed.id,
+      })
+    );
+    closeAnchorDialog();
+  };
+
+  const removeAnchorId = () => {
+    if (!editor || anchorPosition === null) return;
+    const heading = editor.state.doc.nodeAt(anchorPosition);
+    if (!heading || heading.type.name !== 'heading') return;
+    editor.view.dispatch(
+      editor.state.tr.setNodeMarkup(anchorPosition, undefined, { ...heading.attrs, id: null })
+    );
+    closeAnchorDialog();
+  };
 
   const onChangeHeading = (value: string) => {
     if (!editor) return;
@@ -97,6 +234,27 @@ export function useHeading(editor: Editor | null, props: { disabled?: boolean; l
         <SingleSelectOption value="h5">h5</SingleSelectOption>
         <SingleSelectOption value="h6">h6</SingleSelectOption>
       </SingleSelect>
+    ),
+    headingAnchorButton: (
+      <ToolbarButton
+        onClick={openAnchorDialog}
+        icon={<Hashtag />}
+        active={Boolean(editorState?.headingId)}
+        disabled={!editor || props.disabled || editorState?.headingPos === undefined}
+        tooltip={formatMessage({ id: 'tiptap-editor.heading.anchorButton', defaultMessage: 'Set heading anchor ID' })}
+      />
+    ),
+    headingAnchorDialog: (
+      <HeadingAnchorDialog
+        open={anchorDialogOpen}
+        value={anchorDraft}
+        error={anchorError}
+        hasAnchor={anchorInitiallySet}
+        onChange={changeAnchorDraft}
+        onClose={closeAnchorDialog}
+        onSave={commitAnchorId}
+        onRemove={removeAnchorId}
+      />
     ),
   };
 }

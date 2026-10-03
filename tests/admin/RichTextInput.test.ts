@@ -14,6 +14,7 @@ vi.mock('react', async () => {
       capturedUseMemoDeps = deps;
       return fn();
     },
+    useState: (initial: unknown) => [initial, vi.fn()],
     forwardRef: (fn: any) => fn,
     createElement: (type: any, props: any, ...children: any[]) => ({
       type,
@@ -67,6 +68,8 @@ const mockStarterKit = {
 const mockHeading = {
   headingSelect: { type: 'HeadingStyleSelect' },
   headingTagSelect: { type: 'HeadingTagSelect' },
+  headingAnchorButton: { type: 'HeadingAnchorButton' },
+  headingAnchorDialog: { type: 'HeadingAnchorDialog' },
 };
 const mockLink = { linkButton: null, linkDialog: null };
 const mockScript = { superscriptButton: null, subscriptButton: null };
@@ -142,6 +145,7 @@ vi.mock('../../admin/src/components/Spacer', () => ({
 vi.mock('@strapi/design-system', () => ({
   Box: 'Box',
   Loader: 'Loader',
+  Typography: 'Typography',
 }));
 
 // ─── Mock tiptap packages ─────────────────────────────────────────────────────

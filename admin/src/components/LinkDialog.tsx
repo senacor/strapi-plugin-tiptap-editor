@@ -27,9 +27,6 @@ export const LinkDialog: React.FC<LinkDialogProps> = ({
 }) => {
   const { formatMessage } = useIntl();
   const [value, setValue] = React.useState(url || '');
-  const selectTriggerRef = React.useCallback((element: HTMLDivElement | null) => {
-    if (element) element.style.width = '100%';
-  }, []);
 
   React.useEffect(() => {
     if (open) {
@@ -63,18 +60,19 @@ export const LinkDialog: React.FC<LinkDialogProps> = ({
                   <Field.Label>
                     {formatMessage({ id: 'tiptap-editor.link.anchorSuggestions', defaultMessage: 'Jump to heading' })}
                   </Field.Label>
-                  <SingleSelect
-                    ref={selectTriggerRef}
-                    placeholder={formatMessage({ id: 'tiptap-editor.link.anchorPlaceholder', defaultMessage: 'Choose a heading' })}
-                    value={anchors.find(({ id }) => value === `#${id}`)?.id}
-                    onChange={(id: string | number) => setValue(`#${id}`)}
-                  >
-                    {anchors.map(({ id, text }) => (
-                      <SingleSelectOption key={id} value={id}>
-                        {text || id} (#{id})
-                      </SingleSelectOption>
-                    ))}
-                  </SingleSelect>
+                  <Box width="100%">
+                    <SingleSelect
+                      placeholder={formatMessage({ id: 'tiptap-editor.link.anchorPlaceholder', defaultMessage: 'Choose a heading' })}
+                      value={anchors.find(({ id }) => value === `#${id}`)?.id}
+                      onChange={(id: string | number) => setValue(`#${id}`)}
+                    >
+                      {anchors.map(({ id, text }) => (
+                        <SingleSelectOption key={id} value={id}>
+                          {text || id} (#{id})
+                        </SingleSelectOption>
+                      ))}
+                    </SingleSelect>
+                  </Box>
                 </Field.Root>
               </Box>
             )}

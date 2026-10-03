@@ -116,7 +116,8 @@ describe('heading anchors', () => {
     const integrity = editor.extensionManager.plugins.find((plugin) => Boolean(plugin.spec.appendTransaction));
     expect(integrity).toBeDefined();
     editor.commands.insertContentAt(editor.state.doc.content.size, heading('Copy', 'same'));
-    const cleanup = integrity!.spec.appendTransaction!([], editor.state, editor.state);
+    const changeTr = editor.state.tr.setNodeMarkup(0, undefined, editor.state.doc.firstChild!.attrs);
+    const cleanup = integrity!.spec.appendTransaction!([changeTr], editor.state, editor.state);
     expect(cleanup).not.toBeNull();
     const headings = cleanup!.doc.toJSON().content!;
     expect(headings.map((node: any) => node.content?.[0].text)).toEqual(['Original', 'Copy']);

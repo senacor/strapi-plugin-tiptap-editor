@@ -4,9 +4,9 @@ import Heading from '@tiptap/extension-heading';
 import { SingleSelect, SingleSelectOption } from '@strapi/design-system';
 import { useIntl } from 'react-intl';
 import { useState } from 'react';
-import { Fragment, Slice } from '@tiptap/pm/model';
+import { Fragment, Node as ProseMirrorNode, Slice } from '@tiptap/pm/model';
 import { Plugin } from '@tiptap/pm/state';
-import { isHeadingAnchorAvailable, parseHeadingAnchorId } from '../utils/headingAnchors';
+import { isHeadingAnchorAvailable, parseHeadingAnchorId, pickDuplicateHeadingIndices } from '../utils/headingAnchors';
 import { Hashtag } from '@strapi/icons';
 import { ToolbarButton } from '../components/ToolbarButton';
 import { HeadingAnchorDialog } from '../components/HeadingAnchorDialog';
@@ -48,17 +48,20 @@ export const BaseHeadingWithSEOTag = Heading.extend({
             return new Slice(transform(slice.content), slice.openStart, slice.openEnd);
           },
         },
-        appendTransaction(_transactions, _oldState, newState) {
-          const seen = new Set<string>();
-          const tr = newState.tr;
+        appendTransaction(transactions, _oldState, newState) {
+          if (!transactions.some((transaction) => transaction.docChanged)) return null;
+
+          const headings: Array<{ position: number; node: ProseMirrorNode }> = [];
           newState.doc.descendants((node, position) => {
-            if (node.type.name !== 'heading' || typeof node.attrs.id !== 'string' || !node.attrs.id) {
-              return;
-            }
-            if (seen.has(node.attrs.id)) {
+            if (node.type.name === 'heading') headings.push({ position, node });
+          });
+          const duplicates = pickDuplicateHeadingIndices(headings.map(({ node }) => node.attrs.id));
+          if (duplicates.size === 0) return null;
+
+          const tr = newState.tr;
+          headings.forEach(({ position, node }, index) => {
+            if (duplicates.has(index)) {
               tr.setNodeMarkup(position, undefined, { ...node.attrs, id: null });
-            } else {
-              seen.add(node.attrs.id);
             }
           });
           return tr.docChanged ? tr : null;
@@ -76,6 +79,7 @@ export function useHeading(editor: Editor | null, props: { disabled?: boolean; l
   const levels = props.levels ?? [1, 2, 3, 4, 5, 6];
   const [anchorDialogOpen, setAnchorDialogOpen] = useState(false);
   const [anchorPosition, setAnchorPosition] = useState<number | null>(null);
+  const [anchorOriginalId, setAnchorOriginalId] = useState<string | null>(null);
   const [anchorInitiallySet, setAnchorInitiallySet] = useState(false);
   const [anchorDraft, setAnchorDraft] = useState('');
   const [anchorError, setAnchorError] = useState<string | null>(null);
@@ -127,6 +131,7 @@ export function useHeading(editor: Editor | null, props: { disabled?: boolean; l
     const heading = editor.state.doc.nodeAt(editorState.headingPos);
     if (!heading || heading.type.name !== 'heading') return;
     setAnchorPosition(editorState.headingPos);
+    setAnchorOriginalId(heading.attrs.id ?? null);
     setAnchorDraft(heading.attrs.id ?? '');
     setAnchorInitiallySet(Boolean(heading.attrs.id));
     setAnchorError(null);
@@ -146,7 +151,10 @@ export function useHeading(editor: Editor | null, props: { disabled?: boolean; l
       return;
     }
     const heading = editor.state.doc.nodeAt(anchorPosition);
-    if (!heading || heading.type.name !== 'heading') return;
+    if (!heading || heading.type.name !== 'heading' || heading.attrs.id !== anchorOriginalId) {
+      closeAnchorDialog();
+      return;
+    }
     const parsed = parseHeadingAnchorId(anchorDraft);
     if (heading.attrs.id === parsed.id) {
       closeAnchorDialog();
@@ -164,7 +172,10 @@ export function useHeading(editor: Editor | null, props: { disabled?: boolean; l
   const removeAnchorId = () => {
     if (!editor || anchorPosition === null) return;
     const heading = editor.state.doc.nodeAt(anchorPosition);
-    if (!heading || heading.type.name !== 'heading') return;
+    if (!heading || heading.type.name !== 'heading' || heading.attrs.id !== anchorOriginalId) {
+      closeAnchorDialog();
+      return;
+    }
     editor.view.dispatch(
       editor.state.tr.setNodeMarkup(anchorPosition, undefined, { ...heading.attrs, id: null })
     );

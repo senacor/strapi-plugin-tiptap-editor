@@ -50,29 +50,50 @@ export function collectHeadingAnchors(doc: JSONContent): HeadingAnchor[] {
   return candidates.filter(({ id }) => counts.get(id) === 1);
 }
 
+// Given heading ids in document order, returns the index of each occurrence
+// after the first one that shares an id (i.e. the ones to clear).
+export function pickDuplicateHeadingIndices(ids: Array<string | null | undefined>): Set<number> {
+  const seen = new Set<string>();
+  const duplicates = new Set<number>();
+  ids.forEach((id, index) => {
+    if (typeof id !== 'string' || !id) return;
+    if (seen.has(id)) {
+      duplicates.add(index);
+    } else {
+      seen.add(id);
+    }
+  });
+  return duplicates;
+}
+
 export function removeDuplicateHeadingAnchors(
   doc: JSONContent
 ): { content: JSONContent; removed: number } {
-  const seen = new Set<string>();
-  let removed = 0;
+  const ids: Array<string | null | undefined> = [];
+  const collect = (node: JSONContent) => {
+    if (node.type === 'heading') ids.push(node.attrs?.id as string | null | undefined);
+    node.content?.forEach(collect);
+  };
+  collect(doc);
+  const duplicates = pickDuplicateHeadingIndices(ids);
+
+  let index = 0;
   const visit = (node: JSONContent): JSONContent => {
     let result = node;
-    if (node.type === 'heading' && typeof node.attrs?.id === 'string' && node.attrs.id) {
-      if (seen.has(node.attrs.id)) {
+    if (node.type === 'heading') {
+      if (duplicates.has(index)) {
         result = { ...node, attrs: { ...node.attrs, id: null } };
-        removed += 1;
-      } else {
-        seen.add(node.attrs.id);
       }
+      index += 1;
     }
     if (node.content) {
       const content = node.content.map(visit);
-      if (content.some((child, index) => child !== node.content![index])) {
+      if (content.some((child, i) => child !== node.content![i])) {
         result = { ...result, content };
       }
     }
     return result;
   };
   const content = visit(doc);
-  return { content, removed };
+  return { content, removed: duplicates.size };
 }
